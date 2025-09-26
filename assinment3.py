@@ -1,19 +1,39 @@
 import hashlib,time
 
-def make_hash(i,t,d,p): return hashlib.sha256((str(i)+str(t)+str(d)+str(p)).encode()).hexdigest()
-chain=[]
+def make_hash(i,t,d,p):
+    return hashlib.sha256((str(i)+str(t)+str(d)+str(p)).encode()).hexdigest()
 
-def setBlock(data):
-    i=len(chain); t=time.time(); p=chain[-1]['hash'] if chain else "0"
-    chain.append({"index":i,"time":t,"data":data,"prev":p,"hash":make_hash(i,t,data,p)})
+class Node:
+    def __init__(self,name):
+        self.name=name
+        self.chain=[]
+    def setBlock(self,data):
+        i=len(self.chain);t=time.time();p=self.chain[-1]['hash'] if self.chain else "0"
+        block={"index":i,"timestamp":t,"data":data,"prev_hash":p,"hash":make_hash(i,t,data,p)}
+        self.chain.append(block);return block
+    def getBlock(self,index):
+        return self.chain[index] if 0<=index<len(self.chain) else "Block not found"
+    def blocksExplorer(self):
+        print(f"--- {self.name} ---");[print(b) for b in self.chain]
+    def mineBlock(self,data="Mined Block"):
+        return self.setBlock(data)
 
-def getBlock(i): return chain[i] if 0<=i<len(chain) else "Block not found"
-def blocksExplorer(): [print(b) for b in chain]
-def mineBlock(data="Mined Block"): setBlock(data)
+class DecentralizedSystem:
+    def __init__(self,nodes):
+        self.nodes=nodes
+    def broadcast(self,data):
+        for n in self.nodes:n.mineBlock(data)
 
-setBlock("Genesis")
-setBlock("First")
-setBlock("Second")
-mineBlock("Reward")
-blocksExplorer()
-print(getBlock(1))
+n1=Node("Node 1")
+n2=Node("Node 2")
+n3=Node("Node 3")
+net=DecentralizedSystem([n1,n2,n3])
+
+net.broadcast("Genesis Block")
+net.broadcast("First Transaction")
+net.broadcast("Second Transaction")
+
+n1.blocksExplorer()
+n2.blocksExplorer()
+n3.blocksExplorer()
+print(n1.getBlock(1))
